@@ -14,6 +14,16 @@ import {
   ValueIntContext,
   ValueStringContext,
   VariableDeclarationContext,
+  MultilineProgContext,
+  MulExpressionContext,
+  DivExpressionContext,
+  PlusExpressionContext,
+  MinusExpressionContext,
+  ParExpressionContext,
+  VarExpressionContext,
+  IntExpressionContext,
+  FloatExpressionContext,
+  ExpressionDeclarationContext,
 } from "./AlfParser.js";
 import { AlfListener } from "./AlfListener.js";
 import { AlfVisitor } from "./AlfVisitor.js";
@@ -34,11 +44,14 @@ abstract class ASTNode {
 }
 
 class StatementNode extends ASTNode {
-  constructor(public readonly statement: ASTNode) {
+  constructor(public readonly statements: ASTNode[]) {
     super();
   }
   toJSON() {
-    /* TODO: Return here an object having the id "statement" and the statement a list of instructions */
+    return {
+      id: "statement",
+      statement: this.statements
+    }
   }
 }
 class DeclarationNode extends ASTNode {
@@ -46,21 +59,71 @@ class DeclarationNode extends ASTNode {
     public readonly variable_type: string,
     public readonly variable: string,
     public readonly op: string,
-    public readonly value: string | number
+    public readonly value: string | number,
+    public readonly expression: ExpressionNode
   ) {
     super();
   }
   toJSON() {
-    /* TODO: Return here an object having the id "declaration" and the following properties: variable_type, variable and value */
+    return {
+      id: "declaration",
+      variable_type: this.variable_type,
+      variable: this.variable,
+      value: this.value
+    }
   }
 }
+class ExpressionNode extends ASTNode {
+    public readonly expression_left: ExpressionNode=new ExpressionNode(new ValueNode(""));
+    public readonly op: string="";
+    public readonly expression_right:ExpressionNode=new ExpressionNode(new ValueNode(""));
+
+    public readonly lp: string="";
+    public readonly expression_center:ExpressionNode=new ExpressionNode(new ValueNode(""));
+    public readonly rp: string="";
+
+    public readonly value: ValueNode=new ValueNode("");
+
+  constructor(
+    expression_left: ExpressionNode,
+    op: string,
+    expression_right:ExpressionNode,
+  );
+  constructor(
+    lp: string,
+    expression_center: ExpressionNode,
+    rp: string,
+  );
+  constructor(
+    value: ValueNode
+  );
+  constructor(array: string | ASTNode) {
+      super();
+  }
+  toJSON() {
+    return {
+      id: "expression",
+      expression_left: this.expression_left,
+      expression_right: this.expression_right,
+      op: this.op,
+      lp: this.lp,
+      rp: this.rp,
+      value: this.value
+    }
+  }
+}
+
+
 
 class ValueNode extends ASTNode {
   constructor(public readonly value: number | string) {
     super();
   }
   toJSON() {
-    /*TODO: Return here an object having the id "value" and the following properties: value */
+    return {
+      id: "value",
+      value: this.value
+    }
   }
 }
 
@@ -69,7 +132,10 @@ class TypeNode extends ASTNode {
     super();
   }
   toJSON() {
-    /* TODO: Return here an object having the id "type" and the following properties: type */
+    return {
+      id: "type",
+      type: this.type_name
+    }
   }
 }
 
@@ -78,16 +144,89 @@ class MyAlfVisitor
   implements AlfVisitor<ASTNode>
 {
   defaultResult() {
-    return new StatementNode({} as ASTNode);
+    return new StatementNode({} as ASTNode[]);
+  }
+  visitMultilineProg(ctx:MultilineProgContext): StatementNode{
+    let statements=[];
+    for(let i=0;i<ctx.statement().length;i++){
+      statements[i]=this.visit(ctx.statement(i));
+    }
+    if(statements){
+      return new StatementNode(statements);
+    }
+    else{
+      throw new Error();
+    }
   }
   visitVariableDeclaration(ctx: VariableDeclarationContext): DeclarationNode {
     return new DeclarationNode(
       (this.visit(ctx.type()) as TypeNode).type_name,
       ctx.VARIABLE().text,
       ctx.EQ().text,
-      (this.visit(ctx.value()) as ValueNode).value
+      (this.visit(ctx.value()) as ValueNode).value, 
     );
   }
+  visitExpressionDeclaration(ctx: ExpressionDeclarationContext): DeclarationNode {
+    return new DeclarationNode(
+      (this.visit(ctx.type()) as TypeNode).type_name,
+      ctx.VARIABLE().text,
+      ctx.EQ().text,
+      (this.visit(ctx.expression()) as ExpressionNode).expression, 
+    );
+  }
+
+  visitIntExpression (ctx: IntExpressionContext) : ExpressionNode {
+    return new ExpressionNode(new ValueNode(parseInt(ctx.INT_NUMBER().text)));
+  }
+
+  visitFloatExpression (ctx: FloatExpressionContext) : ExpressionNode {
+    return new ExpressionNode(new ValueNode(parseFloat(ctx.FLOAT_NUMBER().text)));
+  }
+
+  visitVarExpression (ctx: VarExpressionContext) : ExpressionNode {
+    return new ExpressionNode(new ValueNode(ctx.VARIABLE().text));
+  }
+
+  visitPlusExpression(ctx: PlusExpressionContext) : ExpressionNode{
+    return new ExpressionNode(
+        (this.visit(ctx._left) as ExpressionNode).expression_left,
+        ctx.PLUS().text,
+        (this.visit(ctx._right) as ExpressionNode).expression_right,
+    );
+  }
+
+  visitDivExpression(ctx: DivExpressionContext) : ExpressionNode{
+    return new ExpressionNode(
+        (this.visit(ctx._left) as ExpressionNode).expression_left,
+        ctx.DIV().text,
+        (this.visit(ctx._right) as ExpressionNode).expression_right,
+    );
+  }
+
+  visitMinusExpression(ctx: MinusExpressionContext) : ExpressionNode{
+    return new ExpressionNode(
+        (this.visit(ctx._left) as ExpressionNode).expression_left,
+        ctx.MINUS().text,
+        (this.visit(ctx._right) as ExpressionNode).expression_right,
+    );
+  }
+
+  visitMulExpression(ctx: MulExpressionContext) : ExpressionNode{
+    return new ExpressionNode(
+        (this.visit(ctx._left) as ExpressionNode).expression_left,
+        ctx.MUL().text,
+        (this.visit(ctx._right) as ExpressionNode).expression_right,
+    );
+  }
+
+  visitParExpression(ctx: ParExpressionContext) : ExpressionNode{
+    return new ExpressionNode(
+      ctx.LP().text,
+      (this.visit(ctx._center) as ExpressionNode).expression_center,
+      ctx.RP().text,
+    );
+  }
+
   visitValueInt(ctx: ValueIntContext): ValueNode {
     return new ValueNode(parseInt(ctx.INT_NUMBER().text));
   }
@@ -108,4 +247,9 @@ class MyAlfVisitor
   }
 }
 const visitor = new MyAlfVisitor();
-console.log(JSON.stringify(visitor.visit(tree), null, 4));
+
+try {
+  fs.writeFileSync('./output.json', JSON.stringify(visitor.visit(tree), null, 4));
+} catch(error) {
+  console.log(error);
+}

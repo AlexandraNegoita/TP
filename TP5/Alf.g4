@@ -1,10 +1,26 @@
 grammar Alf;
 
-start       : declaration                  #declarationStatement
+
+start       : (statement ';' NEWLINE*)*                 #multilineProg
+            ;
+
+statement   : declaration   #declarationRule
+            |expression     #expressionRule
             ;
 
 declaration : type VARIABLE EQ value       #variableDeclaration
+            | type VARIABLE EQ expression   #expressionDeclaration
             ;
+
+expression: left=expression op=MUL right=expression             #mulExpression
+          | left=expression op=DIV right=expression             #divExpression                 
+          | left=expression op=PLUS right=expression            #plusExpression
+          | left=expression op=MINUS right=expression           #minusExpression
+          | LP center=expression RP                             #parExpression
+          | INT_NUMBER                                          #intExpression
+          | FLOAT_NUMBER                                        #floatExpression
+          | VARIABLE                                            #varExpression                         
+          ;
 
 type        : INT                           #typeInt
             | FLOAT                         #typeFloat
@@ -19,8 +35,8 @@ value       : INT_NUMBER                    #valueInt
 WS          :   (' ')       -> skip;
 NEWLINE     :   ([\r\n]+)   -> skip;
 VARIABLE    :   ('_'[a-zA-Z0-9]+);
-ADD         :   '+';
-SUB         :   '-';
+PLUS         :   '+';
+MINUS         :   '-';
 MUL         :   '*';
 DIV         :   '/';
 REM         :   '%';

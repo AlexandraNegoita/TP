@@ -19,8 +19,8 @@ export class AlfLexer extends Lexer {
 	public static readonly WS = 1;
 	public static readonly NEWLINE = 2;
 	public static readonly VARIABLE = 3;
-	public static readonly ADD = 4;
-	public static readonly SUB = 5;
+	public static readonly PLUS = 4;
+	public static readonly MINUS = 5;
 	public static readonly MUL = 6;
 	public static readonly DIV = 7;
 	public static readonly REM = 8;
@@ -46,7 +46,7 @@ export class AlfLexer extends Lexer {
 	];
 
 	public static readonly ruleNames: string[] = [
-		"WS", "NEWLINE", "VARIABLE", "ADD", "SUB", "MUL", "DIV", "REM", "INT", 
+		"WS", "NEWLINE", "VARIABLE", "PLUS", "MINUS", "MUL", "DIV", "REM", "INT", 
 		"FLOAT", "STRING", "LP", "RP", "EQ", "SEMICOLON", "INT_NUMBER", "FLOAT_NUMBER", 
 		"STRING_TEXT",
 	];
@@ -56,8 +56,8 @@ export class AlfLexer extends Lexer {
 		"'%'", "'int'", "'float'", "'string'", "'('", "')'", "'='", "';'",
 	];
 	private static readonly _SYMBOLIC_NAMES: Array<string | undefined> = [
-		undefined, "WS", "NEWLINE", "VARIABLE", "ADD", "SUB", "MUL", "DIV", "REM", 
-		"INT", "FLOAT", "STRING", "LP", "RP", "EQ", "SEMICOLON", "INT_NUMBER", 
+		undefined, "WS", "NEWLINE", "VARIABLE", "PLUS", "MINUS", "MUL", "DIV", 
+		"REM", "INT", "FLOAT", "STRING", "LP", "RP", "EQ", "SEMICOLON", "INT_NUMBER", 
 		"FLOAT_NUMBER", "STRING_TEXT",
 	];
 	public static readonly VOCABULARY: Vocabulary = new VocabularyImpl(AlfLexer._LITERAL_NAMES, AlfLexer._SYMBOLIC_NAMES, []);

@@ -1,0 +1,15 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "antlr4",
+            "type": "antlr-debug",
+            "request": "launch",
+            "input": "sample.txt", /* Le nom du fichier ou vous allez stocker les données de test */
+            "grammar": "Alf.g4",   /* Le nom du fichier de grammaire */
+            "startRule": "start",  /* Le nom de la première règle de la grammaire */
+            "printParseTree": true,
+            "visualParseTree": true
+        }
+    ]
+}

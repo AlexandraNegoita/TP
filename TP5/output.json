@@ -1,6 +1,11 @@
 {
-    "id": "declaration",
-    "variable_type": "int",
-    "variable": "_var1",
-    "value": 5
+    "id": "statement",
+    "statement": [
+        {
+            "id": "declaration",
+            "variable_type": "int",
+            "variable": "_var1",
+            "value": 1
+        }
+    ]
 }
